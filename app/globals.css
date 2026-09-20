@@ -133,6 +133,14 @@ a {
   text-decoration: none;
 }
 
+.brand-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+}
+
 .brand-mark {
   display: grid;
   width: 38px;
@@ -245,10 +253,51 @@ a {
   letter-spacing: -0.018em;
 }
 
+.flow-step {
+  margin-top: 30px;
+  transition: opacity 220ms ease;
+}
+
+.flow-step.is-disabled {
+  opacity: 0.42;
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #123a5a;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+}
+
+.step-title {
+  color: #102a43;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.step-guide {
+  margin-left: 6px;
+  color: #7b8d98;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
 .department-list {
   display: grid;
   gap: 12px;
-  margin-top: 34px;
 }
 
 .department-card {
@@ -365,6 +414,117 @@ a {
   color: #ffffff;
 }
 
+.grade-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.grade-card {
+  display: flex;
+  min-height: 94px;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 14px;
+  border: 1px solid #dce5e9;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #526975;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.grade-card:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: #9fd9c7;
+  box-shadow: 0 10px 24px rgba(34, 70, 84, 0.09);
+}
+
+.grade-card:focus-visible {
+  outline: 3px solid rgba(98, 201, 170, 0.38);
+  outline-offset: 3px;
+}
+
+.grade-card:disabled {
+  cursor: not-allowed;
+}
+
+.grade-card.is-selected {
+  border-color: #62c9aa;
+  background: #effaf6;
+  color: #123a5a;
+  box-shadow: inset 0 0 0 1px rgba(98, 201, 170, 0.18);
+}
+
+.grade-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.grade-num {
+  font-size: 1rem;
+  font-weight: 850;
+  letter-spacing: -0.03em;
+}
+
+.grade-check-icon {
+  display: grid;
+  width: 23px;
+  height: 23px;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  background: #62c9aa;
+  color: #0b3b30;
+}
+
+.grade-step-name {
+  color: #71838d;
+  font-size: 0.8rem;
+  font-weight: 650;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+
+.grade-card.is-selected .grade-step-name {
+  color: #276c5a;
+}
+
+.action-area {
+  margin-top: 22px;
+}
+
+.confirm-button {
+  width: 100%;
+  min-height: 56px;
+  border-radius: 16px;
+  background: #123a5a;
+  font-size: 0.95rem;
+  font-weight: 750;
+  box-shadow: 0 12px 26px rgba(18, 58, 90, 0.18);
+}
+
+.confirm-button:not(:disabled):hover {
+  background: #0d304c;
+}
+
+.confirm-button:disabled {
+  background: #d7e0e4;
+  color: #71838d;
+  opacity: 1;
+  box-shadow: none;
+}
+
+.confirm-button > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .selection-hint,
 .basis-note {
   display: flex;
@@ -404,6 +564,61 @@ a {
   margin-top: 18px;
   font-size: clamp(2rem, 7vw, 2.75rem);
   outline: none;
+}
+
+.grade-tab-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 26px;
+  padding: 8px;
+  border: 1px solid #dce5e9;
+  border-radius: 16px;
+  background: #f4f7f8;
+}
+
+.grade-tab-label {
+  flex: none;
+  padding-left: 6px;
+  color: #657985;
+  font-size: 0.8rem;
+  font-weight: 750;
+}
+
+.grade-tab-group {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.grade-tab-item {
+  min-height: 40px;
+  padding: 7px 6px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #617481;
+  font-size: 0.84rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.grade-tab-item:hover {
+  color: #123a5a;
+}
+
+.grade-tab-item:focus-visible {
+  outline: 3px solid rgba(98, 201, 170, 0.38);
+  outline-offset: 2px;
+}
+
+.grade-tab-item.is-active {
+  background: #ffffff;
+  color: #123a5a;
+  box-shadow: 0 3px 12px rgba(34, 70, 84, 0.1);
 }
 
 .summary-grid {
@@ -530,14 +745,24 @@ a {
   flex-direction: column;
 }
 
+.course-title-line {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+}
+
 .course-name-wrap strong {
+  display: -webkit-box;
   overflow: hidden;
   color: #1b3448;
   font-size: 1rem;
   font-weight: 800;
   letter-spacing: -0.025em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.35;
+  word-break: keep-all;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .course-name-wrap span {
@@ -545,6 +770,22 @@ a {
   color: #7b8b94;
   font-size: 0.76rem;
   font-weight: 550;
+}
+
+.course-title-line .badge-high-pick {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 3px;
+  margin: 0;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: #e2f8ef;
+  color: #24785f;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .percentage {
@@ -650,8 +891,41 @@ a {
     line-height: 1.65;
   }
 
-  .department-list {
-    margin-top: 28px;
+  .flow-step {
+    margin-top: 26px;
+  }
+
+  .step-header {
+    align-items: flex-start;
+  }
+
+  .step-title {
+    font-size: 0.94rem;
+  }
+
+  .step-guide {
+    display: block;
+    margin: 2px 0 0;
+  }
+
+  .grade-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .grade-card {
+    min-height: 82px;
+    padding: 12px;
+  }
+
+  .grade-tab-container {
+    display: block;
+  }
+
+  .grade-tab-label {
+    display: block;
+    margin: 0 0 7px 2px;
+    padding: 0;
   }
 
   .department-card {
@@ -706,6 +980,10 @@ a {
     font-size: 0.93rem;
   }
 
+  .course-title-line {
+    align-items: flex-start;
+  }
+
   .percentage {
     font-size: 1rem;
   }
@@ -726,6 +1004,19 @@ a {
 
   .department-index {
     display: none;
+  }
+
+  .grade-tab-item {
+    font-size: 0.78rem;
+  }
+
+  .course-title-line {
+    display: block;
+  }
+
+  .course-title-line .badge-high-pick {
+    width: fit-content;
+    margin-top: 4px;
   }
 
   .summary-grid {
