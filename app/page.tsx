@@ -5,14 +5,18 @@ import {
   ArrowLeft,
   ArrowRight,
   BarChart3,
+  BookmarkCheck,
   BookOpen,
   Check,
   ChevronRight,
   Database,
   GraduationCap,
   Info,
+  Plus,
+  RotateCcw,
   Sigma,
   Sparkles,
+  Trophy,
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -217,6 +221,7 @@ export default function Home() {
   const [selectedDeptId, setSelectedDeptId] = useState<DepartmentId | null>(null);
   const [selectedGrade, setSelectedGrade] = useState<Grade | null>(null);
   const [showResults, setShowResults] = useState(false);
+  const [myPicks, setMyPicks] = useState<string[]>([]);
   const resultHeadingRef = useRef<HTMLHeadingElement>(null);
 
   const selectedDepartment = useMemo(
@@ -228,6 +233,38 @@ export default function Home() {
     if (!selectedDepartment || !selectedGrade) return null;
     return selectedDepartment.grades[selectedGrade];
   }, [selectedDepartment, selectedGrade]);
+
+  // URL 쿼리 파라미터 및 브라우저 뒤로가기(popstate) 연동
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const readUrlState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const dept = params.get("dept") as DepartmentId | null;
+      const grade = Number(params.get("grade")) as Grade;
+
+      if (dept && ["mathematics", "data-science"].includes(dept)) {
+        setSelectedDeptId(dept);
+        if ([1, 2, 3, 4].includes(grade)) {
+          setSelectedGrade(grade);
+        } else {
+          setSelectedGrade(1);
+        }
+        setShowResults(true);
+      } else {
+        setShowResults(false);
+      }
+    };
+
+    readUrlState();
+
+    const handlePopState = () => {
+      readUrlState();
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   useEffect(() => {
     if (showResults) {
@@ -268,9 +305,10 @@ export default function Home() {
           async execute(input) {
             const params = input as { department?: unknown; grade?: unknown };
             const department = params.department;
-            const grade = typeof params.grade === "number" && [1, 2, 3, 4].includes(params.grade)
-              ? (params.grade as Grade)
-              : 1;
+            const grade =
+              typeof params.grade === "number" && [1, 2, 3, 4].includes(params.grade)
+                ? (params.grade as Grade)
+                : 1;
 
             if (department !== "mathematics" && department !== "data-science") {
               throw new Error("지원하는 학과를 선택해 주세요.");
@@ -279,6 +317,9 @@ export default function Home() {
             setSelectedDeptId(department);
             setSelectedGrade(grade);
             setShowResults(true);
+            const newUrl = `?dept=${department}&grade=${grade}`;
+            window.history.pushState({ dept: department, grade }, "", newUrl);
+
             await new Promise<void>((resolve) =>
               window.requestAnimationFrame(() => resolve()),
             );
@@ -312,6 +353,7 @@ export default function Home() {
               throw new Error("입력은 빈 객체여야 합니다.");
             }
             setShowResults(false);
+            window.history.pushState({}, "", window.location.pathname);
             await new Promise<void>((resolve) =>
               window.requestAnimationFrame(() => resolve()),
             );
@@ -342,11 +384,41 @@ export default function Home() {
   const handleViewStatistics = () => {
     if (!selectedDeptId || !selectedGrade) return;
     setShowResults(true);
+    const newUrl = `?dept=${selectedDeptId}&grade=${selectedGrade}`;
+    window.history.pushState({ dept: selectedDeptId, grade: selectedGrade }, "", newUrl);
+  };
+
+  const switchGrade = (grade: Grade) => {
+    setSelectedGrade(grade);
+    if (selectedDeptId) {
+      const newUrl = `?dept=${selectedDeptId}&grade=${grade}`;
+      window.history.replaceState({ dept: selectedDeptId, grade }, "", newUrl);
+    }
+  };
+
+  const switchDept = (deptId: DepartmentId) => {
+    setSelectedDeptId(deptId);
+    const targetGrade = selectedGrade ?? 1;
+    const newUrl = `?dept=${deptId}&grade=${targetGrade}`;
+    window.history.replaceState({ dept: deptId, grade: targetGrade }, "", newUrl);
   };
 
   const goBack = () => {
     setShowResults(false);
+    window.history.pushState({}, "", window.location.pathname);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const togglePickCourse = (courseName: string) => {
+    setMyPicks((prev) =>
+      prev.includes(courseName)
+        ? prev.filter((item) => item !== courseName)
+        : [...prev, courseName],
+    );
+  };
+
+  const resetMyPicks = () => {
+    setMyPicks([]);
   };
 
   return (
@@ -389,6 +461,12 @@ export default function Home() {
                 궁금한 학과와 학년을 선택하시면 해당 학년 학생들의 강의 선택
                 기록을 집계한 통계를 보여드려요.
               </p>
+            </div>
+
+            {/* 가상 데이터 고지 칩 */}
+            <div className="mock-notice-pill">
+              <span className="mock-notice-dot" aria-hidden="true" />
+              <span>본 서비스의 통계는 가상 시연 데이터이며 실제 수강신청과 무관합니다.</span>
             </div>
 
             {/* STEP 1: 학과 선택 */}
@@ -535,25 +613,46 @@ export default function Home() {
               </p>
             </div>
 
-            {/* 빠른 학년 변경 탭 (Segmented Control) */}
-            <div className="grade-tab-container" aria-label="학년 빠른 변경">
-              <span className="grade-tab-label">학년 전환:</span>
-              <div className="grade-tab-group" role="tablist">
-                {GRADE_LIST.map((grade) => (
-                  <button
-                    key={grade}
-                    type="button"
-                    role="tab"
-                    aria-selected={selectedGrade === grade}
-                    className={`grade-tab-item ${selectedGrade === grade ? "is-active" : ""}`}
-                    onClick={() => setSelectedGrade(grade)}
-                  >
-                    {grade}학년
-                  </button>
-                ))}
+            {/* 컨트롤 바: 학과 및 학년 빠른 전환 스위처 */}
+            <div className="fast-switch-panel">
+              <div className="switch-row">
+                <span className="switch-label">학과 전환:</span>
+                <div className="switch-btn-group" role="tablist" aria-label="학과 전환">
+                  {departments.map((dept) => (
+                    <button
+                      key={dept.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={selectedDepartment.id === dept.id}
+                      className={`switch-tab-btn ${selectedDepartment.id === dept.id ? "is-active" : ""}`}
+                      onClick={() => switchDept(dept.id)}
+                    >
+                      {dept.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="switch-row">
+                <span className="switch-label">학년 전환:</span>
+                <div className="switch-btn-group" role="tablist" aria-label="학년 전환">
+                  {GRADE_LIST.map((grade) => (
+                    <button
+                      key={grade}
+                      type="button"
+                      role="tab"
+                      aria-selected={selectedGrade === grade}
+                      className={`switch-tab-btn ${selectedGrade === grade ? "is-active" : ""}`}
+                      onClick={() => switchGrade(grade)}
+                    >
+                      {grade}학년
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
+            {/* 통계 요약 카드 */}
             <div className="summary-grid" aria-label="통계 요약">
               <div className="summary-card primary-summary">
                 <span className="summary-icon" aria-hidden="true">
@@ -580,6 +679,36 @@ export default function Home() {
               </div>
             </div>
 
+            {/* 내 모의 수강 장바구니 바 (인터랙티브 기능) */}
+            {myPicks.length > 0 && (
+              <div className="my-picks-bar" role="region" aria-label="내가 담은 모의 수강 목록">
+                <div className="my-picks-header">
+                  <div className="my-picks-title">
+                    <BookmarkCheck size={17} />
+                    <span>
+                      내 수강 바구니: <strong>{myPicks.length}과목</strong> 담음
+                    </span>
+                  </div>
+                  <button
+                    className="my-picks-clear-btn"
+                    onClick={resetMyPicks}
+                    type="button"
+                    aria-label="장바구니 비우기"
+                  >
+                    <RotateCcw size={12} />
+                    비우기
+                  </button>
+                </div>
+                <div className="my-picks-tags">
+                  {myPicks.map((pick) => (
+                    <span className="pick-chip" key={pick}>
+                      {pick}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="basis-note">
               <Info size={17} aria-hidden="true" />
               <p>
@@ -589,6 +718,7 @@ export default function Home() {
               </p>
             </div>
 
+            {/* 강의 랭킹 리스트 */}
             <div className="course-section">
               <div className="course-section-header">
                 <div>
@@ -600,15 +730,36 @@ export default function Home() {
 
               <ol className="course-list">
                 {currentGradeData.courses.map((course, index) => {
-                  const isTop3 = index < 3;
+                  const isTop1 = index === 0;
+                  const isTop2 = index === 1;
+                  const isTop3 = index === 2;
+                  const isTop = index < 3;
                   const isHighRate = course.percentage >= 80;
+                  const isPicked = myPicks.includes(course.name);
 
                   return (
                     <li className="course-item" key={course.name}>
                       <div className="course-row">
-                        <span className={`rank ${isTop3 ? "top-rank" : ""}`}>
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
+                        {/* 1~3위 메달 뱃지 또는 순위 번호 */}
+                        <div className="rank-container">
+                          {isTop1 ? (
+                            <span className="medal-badge gold-badge" title="1위">
+                              <Trophy size={13} />
+                              1위
+                            </span>
+                          ) : isTop2 ? (
+                            <span className="medal-badge silver-badge" title="2위">
+                              2위
+                            </span>
+                          ) : isTop3 ? (
+                            <span className="medal-badge bronze-badge" title="3위">
+                              3위
+                            </span>
+                          ) : (
+                            <span className="rank">{String(index + 1).padStart(2, "0")}</span>
+                          )}
+                        </div>
+
                         <div className="course-name-wrap">
                           <div className="course-title-line">
                             <strong>{course.name}</strong>
@@ -621,10 +772,33 @@ export default function Home() {
                           </div>
                           <span>{course.count}명 선택</span>
                         </div>
-                        <strong className="percentage">
-                          {course.percentage.toFixed(1)}%
-                        </strong>
+
+                        {/* 우측 비율 및 나도 담기 버튼 */}
+                        <div className="course-right-actions">
+                          <strong className="percentage">
+                            {course.percentage.toFixed(1)}%
+                          </strong>
+                          <button
+                            className={`pick-toggle-btn ${isPicked ? "is-picked" : ""}`}
+                            onClick={() => togglePickCourse(course.name)}
+                            type="button"
+                            aria-label={`${course.name} ${isPicked ? "담기 취소" : "내 장바구니에 담기"}`}
+                          >
+                            {isPicked ? (
+                              <>
+                                <Check size={13} />
+                                <span>담김</span>
+                              </>
+                            ) : (
+                              <>
+                                <Plus size={13} />
+                                <span>담기</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
                       </div>
+
                       <div
                         className="bar-track"
                         role="progressbar"
@@ -634,7 +808,7 @@ export default function Home() {
                         aria-valuemax={100}
                       >
                         <span
-                          className="bar-fill"
+                          className={`bar-fill ${isTop ? "bar-fill-top" : ""}`}
                           style={{ width: `${course.percentage}%` }}
                         />
                       </div>
