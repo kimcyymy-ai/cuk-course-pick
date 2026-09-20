@@ -221,7 +221,7 @@ export default function Home() {
   const [selectedDeptId, setSelectedDeptId] = useState<DepartmentId | null>(null);
   const [selectedGrade, setSelectedGrade] = useState<Grade | null>(null);
   const [showResults, setShowResults] = useState(false);
-  const [myPicks, setMyPicks] = useState<string[]>([]);
+  const [myPicksByScope, setMyPicksByScope] = useState<Record<string, string[]>>({});
   const resultHeadingRef = useRef<HTMLHeadingElement>(null);
 
   const selectedDepartment = useMemo(
@@ -233,6 +233,10 @@ export default function Home() {
     if (!selectedDepartment || !selectedGrade) return null;
     return selectedDepartment.grades[selectedGrade];
   }, [selectedDepartment, selectedGrade]);
+
+  const currentPickScope =
+    selectedDeptId && selectedGrade ? `${selectedDeptId}-${selectedGrade}` : null;
+  const myPicks = currentPickScope ? (myPicksByScope[currentPickScope] ?? []) : [];
 
   // URL 쿼리 파라미터 및 브라우저 뒤로가기(popstate) 연동
   useEffect(() => {
@@ -410,15 +414,21 @@ export default function Home() {
   };
 
   const togglePickCourse = (courseName: string) => {
-    setMyPicks((prev) =>
-      prev.includes(courseName)
-        ? prev.filter((item) => item !== courseName)
-        : [...prev, courseName],
-    );
+    if (!currentPickScope) return;
+
+    setMyPicksByScope((prev) => {
+      const scopedPicks = prev[currentPickScope] ?? [];
+      const nextPicks = scopedPicks.includes(courseName)
+        ? scopedPicks.filter((item) => item !== courseName)
+        : [...scopedPicks, courseName];
+
+      return { ...prev, [currentPickScope]: nextPicks };
+    });
   };
 
   const resetMyPicks = () => {
-    setMyPicks([]);
+    if (!currentPickScope) return;
+    setMyPicksByScope((prev) => ({ ...prev, [currentPickScope]: [] }));
   };
 
   return (
